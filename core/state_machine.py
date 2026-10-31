@@ -1,24 +1,24 @@
-"""core/state_machine.py —— 双模式状态机 v6（D-024 整句流 + D-055 上屏直达
-+ D-056 选字恢复）
+"""core/state_machine.py —— 双模式状态机 v7（D-024 整句流 + D-056 选字直达
++ D-057 移除直达上屏）
 
 PINYIN 拼字模式（声母整发 + 韵母两级 + 整句流）：
   INITIAL     选声母（24 项整发，如 zh = 一次发 z,h 两键）
   FINAL_HEAD  选韵头组（a/o/e/i/u/ü，仅该声母下有效的组，≤6 项）——不发键
   FINAL_TAIL  选该组下韵母（≤10 项，频率降序）→ 1 次确认整发完整韵母
               组内仅 1 项时自动合并（选组即发，保持快捷）
-  DONE        音节完成：items = ["␣ 上屏", "↕ 选字"] + 声母列表
-              - "␣ 上屏"：直接发空格上屏第一候选（不进菜单，D-055 保留）
-              - "↕ 选字"：进入 SELECT 候选导航（滚轮选非首候选，D-056 恢复）
+  DONE        音节完成：items = ["↕ 选字"] + 声母列表
+              - "↕ 选字"：进入 SELECT 候选导航（滚轮挑候选、左键上屏）——
+                **唯一的上屏途径**（D-057：移除"␣ 上屏"直达——每次上屏内容
+                完全由用户在候选导航中确认，杜绝误上屏第一候选）
               - 声母：继续拼下一音节（整句连续流）
   RIGHT       统一逐字退格（两种模式一致）
 
-SELECT 选字模式（D-056 恢复，v4 卡死根因已修）：
+SELECT 选字模式（D-056 恢复，卡死已根治）：
   滚轮 = ↑↓ 候选高亮；左键 = 空格上屏高亮候选；右键 = 逐字退格；X1 = 回拼字
-  卡死三根治：①显示"选字 ▸ jian"（不再有"（组合未知）"术语）；②**连续 2 次
-  UNKNOWN 自动回声母层**（永不滞留）；③上屏后 IME 反馈自动判定去留
-  （COMPOSING 留选字同步剩余 / ENDED 回声母层）。
+  防滞留三根治：①显示"选字 ▸ jian"；②连续 2 次 UNKNOWN 自动回声母层；
+  ③上屏后 IME 反馈自动判定去留（COMPOSING 留选字同步剩余 / ENDED 回声母层）。
 
-行为矩阵以 01 §4（v6）为规范；纯逻辑，键盘模拟由 KeyboardSink 主线程执行。
+行为矩阵以 01 §4（v7）为规范；纯逻辑，键盘模拟由 KeyboardSink 主线程执行。
 """
 
 from __future__ import annotations
@@ -93,8 +93,8 @@ class StateMachine:
             self.items = [head for head, _ in self._grouped_finals(self.syllable)]
         elif self.stage is Stage.FINAL_TAIL:
             self.items = list(self._tails)
-        else:  # DONE：␣上屏 / ↕选字 / 下一声母（整句流，D-055/D-056）
-            self.items = ["␣ 上屏", "↕ 选字"] + list(self.model.initials())
+        else:  # DONE：↕选字（唯一上屏途径）/ 下一声母（整句流，D-057）
+            self.items = ["↕ 选字"] + list(self.model.initials())
         self.idx = 0
 
     # ---------- SELECT 选字模式（D-056 恢复：候选导航，卡死根治版） ----------
@@ -411,11 +411,7 @@ class StateMachine:
             # 同步重derive 后当前态已在组合中，此时确认 = 收尾不发键）
             return self._pick_tail(picked)
 
-        # DONE：␣上屏 = 直接发空格（整句第一候选）；↕选字 = 进候选导航；
-        # 其余 = 下一声母（整句流）
-        if picked.startswith("␣"):
-            self.pending_text = ""
-            return Action.SEND_SPACE
+        # DONE：↕选字 = 进候选导航（**唯一上屏途径**，D-057）；其余 = 下一声母
         if picked.startswith("↕"):
             self._switch_select()
             return Action.NONE
@@ -449,6 +445,9 @@ class StateMachine:
         if ev is Event.X1:
             # 回拼字（缓冲保留，按剩余组合重建拼字层）——继续拼整句
             self.mode = Mode.PINYIN
+            if self.composition is not None:
+                self.prefix = self.composition         # 同步输入法侧剩余
+                self.syllable_start = 0
             self._rederive_from_prefix(Stage.DONE)
             self.idx = 0
             return Action.NONE
@@ -482,7 +481,7 @@ class StateMachine:
         else:
             ctx = f"拼字[{stage_name}] ｜ {self.prefix or '（空）'}"
             if self.stage is Stage.DONE:
-                ctx += " ｜ ␣上屏 / ↕选字 / 继续拼声母"
+                ctx += " ｜ ↕选字上屏 / 继续拼声母"
             if self.composition_state == "COMPOSING" and self.composition is not None:
                 ctx += f" ｜ 同步[{self.composition}]"
         return Snapshot(

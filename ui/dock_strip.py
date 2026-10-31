@@ -40,7 +40,7 @@ S_CAP = 2.05    # 归一化后单帽放大上限（端部能量补偿钳制，�
 
 def cap_units(text: str) -> float:
     """键帽宽度（U）：1 字母 1U，每多 1 字母 +0.25U，特殊项固定宽，上限 3.5U。"""
-    if text.startswith("␣"):
+    if text.startswith("␣") or text.startswith("↕"):
         return 3.0
     if len(text) <= 1:
         return 1.0

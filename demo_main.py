@@ -4,8 +4,8 @@
 1. 确保微软拼音处于中文模式（或任意拼音输入法）
 2. 先点开一个输入框（记事本/微信/浏览器地址栏）——本程序不抢焦点，
    模拟按键会发往当前焦点窗口
-3. 鼠标操作：滚轮选字母 → 左键发键 → 拼完音节后「␣ 上屏」直接发空格
-   （或继续滚选下一声母整句流）；X2=退格撤销  右键=逐字退格
+3. 鼠标操作：滚轮选字母 → 左键发键 → 拼完音节后滚到「↕ 选字」左键进入
+   候选导航（滚轮挑候选、左键上屏）；X2=退格撤销  右键=逐字退格
    ✕ 或 Ctrl+Alt+Q 退出；--global 启用全局钩子模式（Ctrl+Alt+M 开关）
 4. 单实例：重复启动会提示并退出（D-027 命名互斥量）
 """
@@ -143,7 +143,7 @@ def main() -> int:
             n = sm.pending_text if sm.pending_text.isdigit() else "1"
             return f"撤销当前音节（计划退格 ×{n}）"
         if act is Action.SEND_SPACE:
-            return "␣上屏（空格上屏整句候选，输入法定）"
+            return "选字上屏（空格上屏高亮候选，输入法定）"
         if act is Action.SEND_PAGEDOWN:
             return "候选翻页（PageDown）"
         if act is Action.FIXUP:
@@ -187,7 +187,7 @@ def main() -> int:
             sink.execute(act, "")
             if collector:
                 collector.emit(op, interp, state, plan)
-            # D-055：␣上屏发出后**同步判定**组合状态（GetFocusedElement 快路径
+            # D-055/D-057：选字上屏发出后**同步判定**组合状态（GetFocusedElement 快路径
             # 毫秒级；候选窗焦点期由重试吸收）——COMPOSING → prefix 同步输入法
             # 剩余继续拼；ENDED → 清会话回声母层。字母裸上屏（截图 bug）由此根治：
             # 组合已结束时状态立即清空，后续字母必然开启新音节。
@@ -196,7 +196,7 @@ def main() -> int:
                                                       delay=0.06)
                 sm.update_composition(remaining, istate)
                 if collector:
-                    collector.emit(f"{op or '␣上屏'}（同步反馈）",
+                    collector.emit(f"{op or '选字上屏'}（同步反馈）",
                                    {"COMPOSING": f"组合剩余 {remaining!r} → 同步后继续拼",
                                     "ENDED": "组合已结束 → 清会话回声母层",
                                     }.get(istate, "组合状态未知 → 保守保持"),

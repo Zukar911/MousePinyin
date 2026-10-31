@@ -69,10 +69,9 @@ class TestFinalHeadStage(unittest.TestCase):
         self.assertEqual(snap.stage, Stage.DONE)
         self.assertEqual(snap.prefix, "zh")
         self.assertEqual(self.sm.pending_text, "h")
-        # DONE 列表 = 上屏入口 + 选字入口 + 下一声母（整句流，D-055/D-056）
-        self.assertEqual(snap.items[0], "␣ 上屏")
-        self.assertEqual(snap.items[1], "↕ 选字")
-        self.assertEqual(snap.items[2:], ["z", "f"])
+        # DONE 列表 = 选字入口 + 下一声母（整句流，D-057：↕选字为唯一上屏途径）
+        self.assertEqual(snap.items[0], "↕ 选字")
+        self.assertEqual(snap.items[1:], ["z", "f"])
 
     def test_x2_from_head_cancels_initial(self):
         act = self.sm.handle(Event.X2)             # 撤销声母
@@ -124,17 +123,16 @@ class TestDoneStage(unittest.TestCase):
         self.sm.handle(Event.LEFT)                 # z
         self.sm.handle(Event.LEFT)                 # h 组单项合并直发 -> DONE (prefix "zh")
 
-    def test_done_first_item_space(self):
-        """D-055：DONE 首项 = ␣上屏，左键直接发空格（不进二级菜单）。"""
-        act = self.sm.handle(Event.LEFT)           # ␣ 上屏
-        self.assertEqual(act, Action.SEND_SPACE)
-        self.assertEqual(self.sm.snapshot().mode, Mode.PINYIN)
-        self.assertEqual(self.sm.snapshot().prefix, "zh")  # 状态由 IME 反馈同步
+    def test_done_first_item_select(self):
+        """D-057：DONE 首项 = ↕选字（唯一上屏途径），左键进入候选导航。"""
+        act = self.sm.handle(Event.LEFT)           # ↕ 选字
+        self.assertIs(act, Action.NONE)
+        self.assertEqual(self.sm.snapshot().mode, Mode.SELECT)
+        self.assertEqual(self.sm.snapshot().prefix, "zh")  # 缓冲保留，由输入法出候选
 
     def test_done_continue_next_syllable(self):
         sm = self.sm
-        sm.handle(Event.SCROLL_DOWN)               # 高亮 ↕ 选字
-        sm.handle(Event.SCROLL_DOWN)               # 高亮 z（跳过两个入口）
+        sm.handle(Event.SCROLL_DOWN)               # 高亮 z（跳过 ↕ 选字）
         act = sm.handle(Event.LEFT)                # 第二声母 z（整句流）
         self.assertEqual(act, Action.SEND_LETTER)
         self.assertEqual(sm.pending_text, "z")
@@ -148,50 +146,52 @@ class TestDoneStage(unittest.TestCase):
 
 
 class TestDoneImeSync(unittest.TestCase):
-    """D-055：上屏后 IME 反馈三分支（替代原 SELECT 会话语义）。"""
+    """D-057：上屏只经 ↕选字 → SELECT；IME 反馈在 SELECT 态三分支。"""
 
     def setUp(self):
         self.sm = make()
         self.sm.handle(Event.LEFT)                 # z → FINAL_HEAD
         self.sm.handle(Event.LEFT)                 # h 组单项直发 → DONE (zh)
+        self.sm.handle(Event.LEFT)                 # ↕选字 → SELECT
 
     def test_space_then_ended_resets(self):
-        self.sm.handle(Event.LEFT)                 # SEND_SPACE
+        self.assertIs(self.sm.handle(Event.LEFT), Action.SEND_SPACE)
         self.sm.update_composition(None, "ENDED")
         snap = self.sm.snapshot()
         self.assertEqual(snap.stage, Stage.INITIAL)
         self.assertEqual(snap.prefix, "")            # 整句确认完毕，全新开始
 
-    def test_space_then_composing_syncs_prefix(self):
-        self.sm.handle(Event.LEFT)                 # SEND_SPACE
-        # 微软拼音分段消费：zh 全部消费、剩余 "z"（重derive 回韵头层；
-        # "z" 是 FakeModel 的合法声母）
+    def test_space_then_composing_keeps_select(self):
+        self.assertIs(self.sm.handle(Event.LEFT), Action.SEND_SPACE)
+        # 微软拼音分段消费：zh 部分上屏、剩余 "z" → 留选字同步显示
         self.sm.update_composition("z", "COMPOSING")
         snap = self.sm.snapshot()
-        self.assertEqual(snap.prefix, "z")
-        self.assertEqual(snap.stage, Stage.FINAL_HEAD)
+        self.assertEqual(snap.mode, Mode.SELECT)
+        self.assertEqual(snap.items[0], "选字 ▸ z")
 
-    def test_space_then_unknown_conservative(self):
-        self.sm.handle(Event.LEFT)                 # SEND_SPACE
+    def test_space_then_unknown_x2_auto_exit(self):
+        self.assertIs(self.sm.handle(Event.LEFT), Action.SEND_SPACE)
         self.sm.update_composition(None, "UNKNOWN")
-        snap = self.sm.snapshot()
-        self.assertEqual(snap.prefix, "zh")          # 保守：缓冲不动
-        self.assertEqual(snap.stage, Stage.DONE)
+        self.assertEqual(self.sm.mode, Mode.SELECT)  # 第 1 次：保守留
+        self.sm.update_composition(None, "UNKNOWN")
+        self.assertEqual(self.sm.mode, Mode.PINYIN)  # 第 2 次：自动回声母层
+        self.assertEqual(self.sm.snapshot().stage, Stage.INITIAL)
 
     def test_right_backspace_unified(self):
-        """D-055：右键统一逐字退格（两种模式一致）。"""
-        self.sm.handle(Event.LEFT)                 # SEND_SPACE
-        act = self.sm.handle(Event.RIGHT)
+        """D-056：右键统一逐字退格（两种模式一致）。"""
+        act = self.sm.handle(Event.RIGHT)            # SELECT 态右键
         self.assertEqual(act, Action.BACKSPACE)
 
-    def test_x1_idle(self):
-        self.sm.handle(Event.LEFT)
+    def test_x1_back_to_pinyin(self):
+        """SELECT 态 X1 = 回拼字（缓冲保留）。"""
         self.assertIs(self.sm.handle(Event.X1), Action.NONE)
+        self.assertEqual(self.sm.mode, Mode.PINYIN)
+        self.assertEqual(self.sm.prefix, "zh")
 
     def test_x2_empty_buffer_no_backspace(self):
-        """D-053：缓冲删空后再 X2 不再盲发退格——防止删除目标输入框中
-        用户已上屏的字符（导航键/退格落错目标的同类泄漏）。"""
-        self.sm.handle(Event.X2)                    # 撤整音节 zhe（3 退格）
+        """D-053：选字态逐字退格删空 → 自动回声母层；已空再按不发。"""
+        self.sm.handle(Event.X2)                    # zh → z
+        self.sm.handle(Event.X2)                    # z → ""（删空回声母层）
         self.assertEqual(self.sm.snapshot().prefix, "")
         self.assertEqual(self.sm.snapshot().stage, Stage.INITIAL)
         act = self.sm.handle(Event.X2)              # 已空：不发
