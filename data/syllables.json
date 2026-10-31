@@ -1,0 +1,2169 @@
+{
+ "meta": {
+  "source": "mozillazg/pinyin-data pinyin.txt (MIT)",
+  "raw_syllables": 412,
+  "valid_syllables": 408,
+  "invalid_examples": [
+   "m",
+   "n",
+   "ng",
+   "tunwa"
+  ],
+  "initials": [
+   "",
+   "b",
+   "c",
+   "d",
+   "f",
+   "g",
+   "h",
+   "j",
+   "k",
+   "l",
+   "m",
+   "n",
+   "p",
+   "q",
+   "r",
+   "s",
+   "t",
+   "w",
+   "x",
+   "y",
+   "z",
+   "ch",
+   "sh",
+   "zh"
+  ],
+  "finals": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "er",
+   "i",
+   "ia",
+   "ian",
+   "iang",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iong",
+   "iu",
+   "o",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo",
+   "v",
+   "van",
+   "ve",
+   "vn"
+  ],
+  "note": "v=ü; ve=üe; vn=ün; van=üan; j/q/x/y 后 u→v 归一化"
+ },
+ "initial_finals": {
+  "": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "er",
+   "o",
+   "ou"
+  ],
+  "b": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ian",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "o",
+   "u"
+  ],
+  "c": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "en",
+   "eng",
+   "i",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "ch": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "en",
+   "eng",
+   "i",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "d": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ian",
+   "iao",
+   "ie",
+   "ing",
+   "iu",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "f": [
+   "a",
+   "an",
+   "ang",
+   "ei",
+   "en",
+   "eng",
+   "iao",
+   "o",
+   "ou",
+   "u"
+  ],
+  "g": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "h": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "en",
+   "eng",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "j": [
+   "i",
+   "ia",
+   "ian",
+   "iang",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iong",
+   "iu",
+   "v",
+   "van",
+   "ve",
+   "vn"
+  ],
+  "k": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "en",
+   "eng",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "l": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ia",
+   "ian",
+   "iang",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iu",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "un",
+   "uo",
+   "v",
+   "ve"
+  ],
+  "m": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ian",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iu",
+   "o",
+   "ou",
+   "u"
+  ],
+  "n": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ia",
+   "ian",
+   "iang",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iu",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "un",
+   "uo",
+   "v",
+   "ve"
+  ],
+  "p": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ian",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "o",
+   "ou",
+   "u"
+  ],
+  "q": [
+   "i",
+   "ia",
+   "ian",
+   "iang",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iong",
+   "iu",
+   "v",
+   "van",
+   "ve",
+   "vn"
+  ],
+  "r": [
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "en",
+   "eng",
+   "i",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uan",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "s": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "en",
+   "i",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "sh": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "t": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "eng",
+   "i",
+   "ian",
+   "iao",
+   "ie",
+   "ing",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "w": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ei",
+   "en",
+   "eng",
+   "o",
+   "u"
+  ],
+  "x": [
+   "i",
+   "ia",
+   "ian",
+   "iang",
+   "iao",
+   "ie",
+   "in",
+   "ing",
+   "iong",
+   "iu",
+   "v",
+   "van",
+   "ve",
+   "vn"
+  ],
+  "y": [
+   "a",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "i",
+   "in",
+   "ing",
+   "o",
+   "ong",
+   "ou",
+   "v",
+   "van",
+   "ve",
+   "vn"
+  ],
+  "z": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ong",
+   "ou",
+   "u",
+   "uan",
+   "ui",
+   "un",
+   "uo"
+  ],
+  "zh": [
+   "a",
+   "ai",
+   "an",
+   "ang",
+   "ao",
+   "e",
+   "ei",
+   "en",
+   "eng",
+   "i",
+   "ong",
+   "ou",
+   "u",
+   "ua",
+   "uai",
+   "uan",
+   "uang",
+   "ui",
+   "un",
+   "uo"
+  ]
+ },
+ "syllable_chars_top": {
+  "a": [
+   "",
+   "a"
+  ],
+  "ai": [
+   "",
+   "ai"
+  ],
+  "an": [
+   "",
+   "an"
+  ],
+  "ang": [
+   "",
+   "ang"
+  ],
+  "ao": [
+   "",
+   "ao"
+  ],
+  "ba": [
+   "a",
+   "b"
+  ],
+  "bai": [
+   "ai",
+   "b"
+  ],
+  "ban": [
+   "an",
+   "b"
+  ],
+  "bang": [
+   "ang",
+   "b"
+  ],
+  "bao": [
+   "ao",
+   "b"
+  ],
+  "bei": [
+   "b",
+   "ei"
+  ],
+  "ben": [
+   "b",
+   "en"
+  ],
+  "beng": [
+   "b",
+   "eng"
+  ],
+  "bi": [
+   "b",
+   "i"
+  ],
+  "bian": [
+   "b",
+   "ian"
+  ],
+  "biao": [
+   "b",
+   "iao"
+  ],
+  "bie": [
+   "b",
+   "ie"
+  ],
+  "bin": [
+   "b",
+   "in"
+  ],
+  "bing": [
+   "b",
+   "ing"
+  ],
+  "bo": [
+   "b",
+   "o"
+  ],
+  "bu": [
+   "b",
+   "u"
+  ],
+  "ca": [
+   "a",
+   "c"
+  ],
+  "cai": [
+   "ai",
+   "c"
+  ],
+  "can": [
+   "an",
+   "c"
+  ],
+  "cang": [
+   "ang",
+   "c"
+  ],
+  "cao": [
+   "ao",
+   "c"
+  ],
+  "ce": [
+   "c",
+   "e"
+  ],
+  "cen": [
+   "c",
+   "en"
+  ],
+  "ceng": [
+   "c",
+   "eng"
+  ],
+  "cha": [
+   "a",
+   "ch"
+  ],
+  "chai": [
+   "ai",
+   "ch"
+  ],
+  "chan": [
+   "an",
+   "ch"
+  ],
+  "chang": [
+   "ang",
+   "ch"
+  ],
+  "chao": [
+   "ao",
+   "ch"
+  ],
+  "che": [
+   "ch",
+   "e"
+  ],
+  "chen": [
+   "ch",
+   "en"
+  ],
+  "cheng": [
+   "ch",
+   "eng"
+  ],
+  "chi": [
+   "ch",
+   "i"
+  ],
+  "chong": [
+   "ch",
+   "ong"
+  ],
+  "chou": [
+   "ch",
+   "ou"
+  ],
+  "chu": [
+   "ch",
+   "u"
+  ],
+  "chua": [
+   "ch",
+   "ua"
+  ],
+  "chuai": [
+   "ch",
+   "uai"
+  ],
+  "chuan": [
+   "ch",
+   "uan"
+  ],
+  "chuang": [
+   "ch",
+   "uang"
+  ],
+  "chui": [
+   "ch",
+   "ui"
+  ],
+  "chun": [
+   "ch",
+   "un"
+  ],
+  "chuo": [
+   "ch",
+   "uo"
+  ],
+  "ci": [
+   "c",
+   "i"
+  ],
+  "cong": [
+   "c",
+   "ong"
+  ],
+  "cou": [
+   "c",
+   "ou"
+  ],
+  "cu": [
+   "c",
+   "u"
+  ],
+  "cuan": [
+   "c",
+   "uan"
+  ],
+  "cui": [
+   "c",
+   "ui"
+  ],
+  "cun": [
+   "c",
+   "un"
+  ],
+  "cuo": [
+   "c",
+   "uo"
+  ],
+  "da": [
+   "a",
+   "d"
+  ],
+  "dai": [
+   "ai",
+   "d"
+  ],
+  "dan": [
+   "an",
+   "d"
+  ],
+  "dang": [
+   "ang",
+   "d"
+  ],
+  "dao": [
+   "ao",
+   "d"
+  ],
+  "de": [
+   "d",
+   "e"
+  ],
+  "dei": [
+   "d",
+   "ei"
+  ],
+  "den": [
+   "d",
+   "en"
+  ],
+  "deng": [
+   "d",
+   "eng"
+  ],
+  "di": [
+   "d",
+   "i"
+  ],
+  "dian": [
+   "d",
+   "ian"
+  ],
+  "diao": [
+   "d",
+   "iao"
+  ],
+  "die": [
+   "d",
+   "ie"
+  ],
+  "ding": [
+   "d",
+   "ing"
+  ],
+  "diu": [
+   "d",
+   "iu"
+  ],
+  "dong": [
+   "d",
+   "ong"
+  ],
+  "dou": [
+   "d",
+   "ou"
+  ],
+  "du": [
+   "d",
+   "u"
+  ],
+  "duan": [
+   "d",
+   "uan"
+  ],
+  "dui": [
+   "d",
+   "ui"
+  ],
+  "dun": [
+   "d",
+   "un"
+  ],
+  "duo": [
+   "d",
+   "uo"
+  ],
+  "e": [
+   "",
+   "e"
+  ],
+  "ei": [
+   "",
+   "ei"
+  ],
+  "en": [
+   "",
+   "en"
+  ],
+  "er": [
+   "",
+   "er"
+  ],
+  "fa": [
+   "a",
+   "f"
+  ],
+  "fan": [
+   "an",
+   "f"
+  ],
+  "fang": [
+   "ang",
+   "f"
+  ],
+  "fei": [
+   "ei",
+   "f"
+  ],
+  "fen": [
+   "en",
+   "f"
+  ],
+  "feng": [
+   "eng",
+   "f"
+  ],
+  "fiao": [
+   "f",
+   "iao"
+  ],
+  "fo": [
+   "f",
+   "o"
+  ],
+  "fou": [
+   "f",
+   "ou"
+  ],
+  "fu": [
+   "f",
+   "u"
+  ],
+  "ga": [
+   "a",
+   "g"
+  ],
+  "gai": [
+   "ai",
+   "g"
+  ],
+  "gan": [
+   "an",
+   "g"
+  ],
+  "gang": [
+   "ang",
+   "g"
+  ],
+  "gao": [
+   "ao",
+   "g"
+  ],
+  "ge": [
+   "e",
+   "g"
+  ],
+  "gei": [
+   "ei",
+   "g"
+  ],
+  "gen": [
+   "en",
+   "g"
+  ],
+  "geng": [
+   "eng",
+   "g"
+  ],
+  "gong": [
+   "g",
+   "ong"
+  ],
+  "gou": [
+   "g",
+   "ou"
+  ],
+  "gu": [
+   "g",
+   "u"
+  ],
+  "gua": [
+   "g",
+   "ua"
+  ],
+  "guai": [
+   "g",
+   "uai"
+  ],
+  "guan": [
+   "g",
+   "uan"
+  ],
+  "guang": [
+   "g",
+   "uang"
+  ],
+  "gui": [
+   "g",
+   "ui"
+  ],
+  "gun": [
+   "g",
+   "un"
+  ],
+  "guo": [
+   "g",
+   "uo"
+  ],
+  "ha": [
+   "a",
+   "h"
+  ],
+  "hai": [
+   "ai",
+   "h"
+  ],
+  "han": [
+   "an",
+   "h"
+  ],
+  "hang": [
+   "ang",
+   "h"
+  ],
+  "hao": [
+   "ao",
+   "h"
+  ],
+  "he": [
+   "e",
+   "h"
+  ],
+  "hen": [
+   "en",
+   "h"
+  ],
+  "heng": [
+   "eng",
+   "h"
+  ],
+  "hong": [
+   "h",
+   "ong"
+  ],
+  "hou": [
+   "h",
+   "ou"
+  ],
+  "hu": [
+   "h",
+   "u"
+  ],
+  "hua": [
+   "h",
+   "ua"
+  ],
+  "huai": [
+   "h",
+   "uai"
+  ],
+  "huan": [
+   "h",
+   "uan"
+  ],
+  "huang": [
+   "h",
+   "uang"
+  ],
+  "hui": [
+   "h",
+   "ui"
+  ],
+  "hun": [
+   "h",
+   "un"
+  ],
+  "huo": [
+   "h",
+   "uo"
+  ],
+  "ji": [
+   "i",
+   "j"
+  ],
+  "jia": [
+   "ia",
+   "j"
+  ],
+  "jian": [
+   "ian",
+   "j"
+  ],
+  "jiang": [
+   "iang",
+   "j"
+  ],
+  "jiao": [
+   "iao",
+   "j"
+  ],
+  "jie": [
+   "ie",
+   "j"
+  ],
+  "jin": [
+   "in",
+   "j"
+  ],
+  "jing": [
+   "ing",
+   "j"
+  ],
+  "jiong": [
+   "iong",
+   "j"
+  ],
+  "jiu": [
+   "iu",
+   "j"
+  ],
+  "ju": [
+   "j",
+   "v"
+  ],
+  "juan": [
+   "j",
+   "van"
+  ],
+  "jue": [
+   "j",
+   "ve"
+  ],
+  "jun": [
+   "j",
+   "vn"
+  ],
+  "ka": [
+   "a",
+   "k"
+  ],
+  "kai": [
+   "ai",
+   "k"
+  ],
+  "kan": [
+   "an",
+   "k"
+  ],
+  "kang": [
+   "ang",
+   "k"
+  ],
+  "kao": [
+   "ao",
+   "k"
+  ],
+  "ke": [
+   "e",
+   "k"
+  ],
+  "ken": [
+   "en",
+   "k"
+  ],
+  "keng": [
+   "eng",
+   "k"
+  ],
+  "kong": [
+   "k",
+   "ong"
+  ],
+  "kou": [
+   "k",
+   "ou"
+  ],
+  "ku": [
+   "k",
+   "u"
+  ],
+  "kua": [
+   "k",
+   "ua"
+  ],
+  "kuai": [
+   "k",
+   "uai"
+  ],
+  "kuan": [
+   "k",
+   "uan"
+  ],
+  "kuang": [
+   "k",
+   "uang"
+  ],
+  "kui": [
+   "k",
+   "ui"
+  ],
+  "kun": [
+   "k",
+   "un"
+  ],
+  "kuo": [
+   "k",
+   "uo"
+  ],
+  "la": [
+   "a",
+   "l"
+  ],
+  "lai": [
+   "ai",
+   "l"
+  ],
+  "lan": [
+   "an",
+   "l"
+  ],
+  "lang": [
+   "ang",
+   "l"
+  ],
+  "lao": [
+   "ao",
+   "l"
+  ],
+  "le": [
+   "e",
+   "l"
+  ],
+  "lei": [
+   "ei",
+   "l"
+  ],
+  "len": [
+   "en",
+   "l"
+  ],
+  "leng": [
+   "eng",
+   "l"
+  ],
+  "li": [
+   "i",
+   "l"
+  ],
+  "lia": [
+   "ia",
+   "l"
+  ],
+  "lian": [
+   "ian",
+   "l"
+  ],
+  "liang": [
+   "iang",
+   "l"
+  ],
+  "liao": [
+   "iao",
+   "l"
+  ],
+  "lie": [
+   "ie",
+   "l"
+  ],
+  "lin": [
+   "in",
+   "l"
+  ],
+  "ling": [
+   "ing",
+   "l"
+  ],
+  "liu": [
+   "iu",
+   "l"
+  ],
+  "long": [
+   "l",
+   "ong"
+  ],
+  "lou": [
+   "l",
+   "ou"
+  ],
+  "lu": [
+   "l",
+   "u"
+  ],
+  "luan": [
+   "l",
+   "uan"
+  ],
+  "lun": [
+   "l",
+   "un"
+  ],
+  "luo": [
+   "l",
+   "uo"
+  ],
+  "lv": [
+   "l",
+   "v"
+  ],
+  "lve": [
+   "l",
+   "ve"
+  ],
+  "ma": [
+   "a",
+   "m"
+  ],
+  "mai": [
+   "ai",
+   "m"
+  ],
+  "man": [
+   "an",
+   "m"
+  ],
+  "mang": [
+   "ang",
+   "m"
+  ],
+  "mao": [
+   "ao",
+   "m"
+  ],
+  "me": [
+   "e",
+   "m"
+  ],
+  "mei": [
+   "ei",
+   "m"
+  ],
+  "men": [
+   "en",
+   "m"
+  ],
+  "meng": [
+   "eng",
+   "m"
+  ],
+  "mi": [
+   "i",
+   "m"
+  ],
+  "mian": [
+   "ian",
+   "m"
+  ],
+  "miao": [
+   "iao",
+   "m"
+  ],
+  "mie": [
+   "ie",
+   "m"
+  ],
+  "min": [
+   "in",
+   "m"
+  ],
+  "ming": [
+   "ing",
+   "m"
+  ],
+  "miu": [
+   "iu",
+   "m"
+  ],
+  "mo": [
+   "m",
+   "o"
+  ],
+  "mou": [
+   "m",
+   "ou"
+  ],
+  "mu": [
+   "m",
+   "u"
+  ],
+  "na": [
+   "a",
+   "n"
+  ],
+  "nai": [
+   "ai",
+   "n"
+  ],
+  "nan": [
+   "an",
+   "n"
+  ],
+  "nang": [
+   "ang",
+   "n"
+  ],
+  "nao": [
+   "ao",
+   "n"
+  ],
+  "ne": [
+   "e",
+   "n"
+  ],
+  "nei": [
+   "ei",
+   "n"
+  ],
+  "nen": [
+   "en",
+   "n"
+  ],
+  "neng": [
+   "eng",
+   "n"
+  ],
+  "ni": [
+   "i",
+   "n"
+  ],
+  "nia": [
+   "ia",
+   "n"
+  ],
+  "nian": [
+   "ian",
+   "n"
+  ],
+  "niang": [
+   "iang",
+   "n"
+  ],
+  "niao": [
+   "iao",
+   "n"
+  ],
+  "nie": [
+   "ie",
+   "n"
+  ],
+  "nin": [
+   "in",
+   "n"
+  ],
+  "ning": [
+   "ing",
+   "n"
+  ],
+  "niu": [
+   "iu",
+   "n"
+  ],
+  "nong": [
+   "n",
+   "ong"
+  ],
+  "nou": [
+   "n",
+   "ou"
+  ],
+  "nu": [
+   "n",
+   "u"
+  ],
+  "nuan": [
+   "n",
+   "uan"
+  ],
+  "nun": [
+   "n",
+   "un"
+  ],
+  "nuo": [
+   "n",
+   "uo"
+  ],
+  "nv": [
+   "n",
+   "v"
+  ],
+  "nve": [
+   "n",
+   "ve"
+  ],
+  "o": [
+   "",
+   "o"
+  ],
+  "ou": [
+   "",
+   "ou"
+  ],
+  "pa": [
+   "a",
+   "p"
+  ],
+  "pai": [
+   "ai",
+   "p"
+  ],
+  "pan": [
+   "an",
+   "p"
+  ],
+  "pang": [
+   "ang",
+   "p"
+  ],
+  "pao": [
+   "ao",
+   "p"
+  ],
+  "pei": [
+   "ei",
+   "p"
+  ],
+  "pen": [
+   "en",
+   "p"
+  ],
+  "peng": [
+   "eng",
+   "p"
+  ],
+  "pi": [
+   "i",
+   "p"
+  ],
+  "pian": [
+   "ian",
+   "p"
+  ],
+  "piao": [
+   "iao",
+   "p"
+  ],
+  "pie": [
+   "ie",
+   "p"
+  ],
+  "pin": [
+   "in",
+   "p"
+  ],
+  "ping": [
+   "ing",
+   "p"
+  ],
+  "po": [
+   "o",
+   "p"
+  ],
+  "pou": [
+   "ou",
+   "p"
+  ],
+  "pu": [
+   "p",
+   "u"
+  ],
+  "qi": [
+   "i",
+   "q"
+  ],
+  "qia": [
+   "ia",
+   "q"
+  ],
+  "qian": [
+   "ian",
+   "q"
+  ],
+  "qiang": [
+   "iang",
+   "q"
+  ],
+  "qiao": [
+   "iao",
+   "q"
+  ],
+  "qie": [
+   "ie",
+   "q"
+  ],
+  "qin": [
+   "in",
+   "q"
+  ],
+  "qing": [
+   "ing",
+   "q"
+  ],
+  "qiong": [
+   "iong",
+   "q"
+  ],
+  "qiu": [
+   "iu",
+   "q"
+  ],
+  "qu": [
+   "q",
+   "v"
+  ],
+  "quan": [
+   "q",
+   "van"
+  ],
+  "que": [
+   "q",
+   "ve"
+  ],
+  "qun": [
+   "q",
+   "vn"
+  ],
+  "ran": [
+   "an",
+   "r"
+  ],
+  "rang": [
+   "ang",
+   "r"
+  ],
+  "rao": [
+   "ao",
+   "r"
+  ],
+  "re": [
+   "e",
+   "r"
+  ],
+  "ren": [
+   "en",
+   "r"
+  ],
+  "reng": [
+   "eng",
+   "r"
+  ],
+  "ri": [
+   "i",
+   "r"
+  ],
+  "rong": [
+   "ong",
+   "r"
+  ],
+  "rou": [
+   "ou",
+   "r"
+  ],
+  "ru": [
+   "r",
+   "u"
+  ],
+  "rua": [
+   "r",
+   "ua"
+  ],
+  "ruan": [
+   "r",
+   "uan"
+  ],
+  "rui": [
+   "r",
+   "ui"
+  ],
+  "run": [
+   "r",
+   "un"
+  ],
+  "ruo": [
+   "r",
+   "uo"
+  ],
+  "sa": [
+   "a",
+   "s"
+  ],
+  "sai": [
+   "ai",
+   "s"
+  ],
+  "san": [
+   "an",
+   "s"
+  ],
+  "sang": [
+   "ang",
+   "s"
+  ],
+  "sao": [
+   "ao",
+   "s"
+  ],
+  "se": [
+   "e",
+   "s"
+  ],
+  "sen": [
+   "en",
+   "s"
+  ],
+  "sha": [
+   "a",
+   "sh"
+  ],
+  "shai": [
+   "ai",
+   "sh"
+  ],
+  "shan": [
+   "an",
+   "sh"
+  ],
+  "shang": [
+   "ang",
+   "sh"
+  ],
+  "shao": [
+   "ao",
+   "sh"
+  ],
+  "she": [
+   "e",
+   "sh"
+  ],
+  "shei": [
+   "ei",
+   "sh"
+  ],
+  "shen": [
+   "en",
+   "sh"
+  ],
+  "sheng": [
+   "eng",
+   "sh"
+  ],
+  "shi": [
+   "i",
+   "sh"
+  ],
+  "shou": [
+   "ou",
+   "sh"
+  ],
+  "shu": [
+   "sh",
+   "u"
+  ],
+  "shua": [
+   "sh",
+   "ua"
+  ],
+  "shuai": [
+   "sh",
+   "uai"
+  ],
+  "shuan": [
+   "sh",
+   "uan"
+  ],
+  "shuang": [
+   "sh",
+   "uang"
+  ],
+  "shui": [
+   "sh",
+   "ui"
+  ],
+  "shun": [
+   "sh",
+   "un"
+  ],
+  "shuo": [
+   "sh",
+   "uo"
+  ],
+  "si": [
+   "i",
+   "s"
+  ],
+  "song": [
+   "ong",
+   "s"
+  ],
+  "sou": [
+   "ou",
+   "s"
+  ],
+  "su": [
+   "s",
+   "u"
+  ],
+  "suan": [
+   "s",
+   "uan"
+  ],
+  "sui": [
+   "s",
+   "ui"
+  ],
+  "sun": [
+   "s",
+   "un"
+  ],
+  "suo": [
+   "s",
+   "uo"
+  ],
+  "ta": [
+   "a",
+   "t"
+  ],
+  "tai": [
+   "ai",
+   "t"
+  ],
+  "tan": [
+   "an",
+   "t"
+  ],
+  "tang": [
+   "ang",
+   "t"
+  ],
+  "tao": [
+   "ao",
+   "t"
+  ],
+  "te": [
+   "e",
+   "t"
+  ],
+  "teng": [
+   "eng",
+   "t"
+  ],
+  "ti": [
+   "i",
+   "t"
+  ],
+  "tian": [
+   "ian",
+   "t"
+  ],
+  "tiao": [
+   "iao",
+   "t"
+  ],
+  "tie": [
+   "ie",
+   "t"
+  ],
+  "ting": [
+   "ing",
+   "t"
+  ],
+  "tong": [
+   "ong",
+   "t"
+  ],
+  "tou": [
+   "ou",
+   "t"
+  ],
+  "tu": [
+   "t",
+   "u"
+  ],
+  "tuan": [
+   "t",
+   "uan"
+  ],
+  "tui": [
+   "t",
+   "ui"
+  ],
+  "tun": [
+   "t",
+   "un"
+  ],
+  "tuo": [
+   "t",
+   "uo"
+  ],
+  "wa": [
+   "a",
+   "w"
+  ],
+  "wai": [
+   "ai",
+   "w"
+  ],
+  "wan": [
+   "an",
+   "w"
+  ],
+  "wang": [
+   "ang",
+   "w"
+  ],
+  "wei": [
+   "ei",
+   "w"
+  ],
+  "wen": [
+   "en",
+   "w"
+  ],
+  "weng": [
+   "eng",
+   "w"
+  ],
+  "wo": [
+   "o",
+   "w"
+  ],
+  "wu": [
+   "u",
+   "w"
+  ],
+  "xi": [
+   "i",
+   "x"
+  ],
+  "xia": [
+   "ia",
+   "x"
+  ],
+  "xian": [
+   "ian",
+   "x"
+  ],
+  "xiang": [
+   "iang",
+   "x"
+  ],
+  "xiao": [
+   "iao",
+   "x"
+  ],
+  "xie": [
+   "ie",
+   "x"
+  ],
+  "xin": [
+   "in",
+   "x"
+  ],
+  "xing": [
+   "ing",
+   "x"
+  ],
+  "xiong": [
+   "iong",
+   "x"
+  ],
+  "xiu": [
+   "iu",
+   "x"
+  ],
+  "xu": [
+   "v",
+   "x"
+  ],
+  "xuan": [
+   "van",
+   "x"
+  ],
+  "xue": [
+   "ve",
+   "x"
+  ],
+  "xun": [
+   "vn",
+   "x"
+  ],
+  "ya": [
+   "a",
+   "y"
+  ],
+  "yan": [
+   "an",
+   "y"
+  ],
+  "yang": [
+   "ang",
+   "y"
+  ],
+  "yao": [
+   "ao",
+   "y"
+  ],
+  "ye": [
+   "e",
+   "y"
+  ],
+  "yi": [
+   "i",
+   "y"
+  ],
+  "yin": [
+   "in",
+   "y"
+  ],
+  "ying": [
+   "ing",
+   "y"
+  ],
+  "yo": [
+   "o",
+   "y"
+  ],
+  "yong": [
+   "ong",
+   "y"
+  ],
+  "you": [
+   "ou",
+   "y"
+  ],
+  "yu": [
+   "v",
+   "y"
+  ],
+  "yuan": [
+   "van",
+   "y"
+  ],
+  "yue": [
+   "ve",
+   "y"
+  ],
+  "yun": [
+   "vn",
+   "y"
+  ],
+  "za": [
+   "a",
+   "z"
+  ],
+  "zai": [
+   "ai",
+   "z"
+  ],
+  "zan": [
+   "an",
+   "z"
+  ],
+  "zang": [
+   "ang",
+   "z"
+  ],
+  "zao": [
+   "ao",
+   "z"
+  ],
+  "ze": [
+   "e",
+   "z"
+  ],
+  "zei": [
+   "ei",
+   "z"
+  ],
+  "zen": [
+   "en",
+   "z"
+  ],
+  "zeng": [
+   "eng",
+   "z"
+  ],
+  "zha": [
+   "a",
+   "zh"
+  ],
+  "zhai": [
+   "ai",
+   "zh"
+  ],
+  "zhan": [
+   "an",
+   "zh"
+  ],
+  "zhang": [
+   "ang",
+   "zh"
+  ],
+  "zhao": [
+   "ao",
+   "zh"
+  ],
+  "zhe": [
+   "e",
+   "zh"
+  ],
+  "zhei": [
+   "ei",
+   "zh"
+  ],
+  "zhen": [
+   "en",
+   "zh"
+  ],
+  "zheng": [
+   "eng",
+   "zh"
+  ],
+  "zhi": [
+   "i",
+   "zh"
+  ],
+  "zhong": [
+   "ong",
+   "zh"
+  ],
+  "zhou": [
+   "ou",
+   "zh"
+  ],
+  "zhu": [
+   "u",
+   "zh"
+  ],
+  "zhua": [
+   "ua",
+   "zh"
+  ],
+  "zhuai": [
+   "uai",
+   "zh"
+  ],
+  "zhuan": [
+   "uan",
+   "zh"
+  ],
+  "zhuang": [
+   "uang",
+   "zh"
+  ],
+  "zhui": [
+   "ui",
+   "zh"
+  ],
+  "zhun": [
+   "un",
+   "zh"
+  ],
+  "zhuo": [
+   "uo",
+   "zh"
+  ],
+  "zi": [
+   "i",
+   "z"
+  ],
+  "zong": [
+   "ong",
+   "z"
+  ],
+  "zou": [
+   "ou",
+   "z"
+  ],
+  "zu": [
+   "u",
+   "z"
+  ],
+  "zuan": [
+   "uan",
+   "z"
+  ],
+  "zui": [
+   "ui",
+   "z"
+  ],
+  "zun": [
+   "un",
+   "z"
+  ],
+  "zuo": [
+   "uo",
+   "z"
+  ]
+ }
+}

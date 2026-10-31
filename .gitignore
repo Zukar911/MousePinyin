@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Build artifacts
+build/
+dist/
+*.spec.bak
+
+# Runtime data (user-local)
+logs/
+*.log
+data/config.json
+data/config.json.harnessbak
+data/raw/
+_smoke_out.txt
+
+# IDE / assistant workspace
+.workbuddy/
+
+# debug transient outputs
+debug/_*.txt

@@ -1,0 +1,11 @@
+# 鼠标拼音输入法（MousePinyin）——运行依赖
+# 安装（中国网络推荐走阿里云镜像，见 install.bat）：
+#   python -m pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+# Python 版本：3.13+（开发验证环境 3.13.12）
+
+PySide6==6.12.0
+pynput==1.8.2
+comtypes==1.4.17
+
+# ---- 构建便携包（可选，仅打分发包时需要）----
+# pyinstaller==6.22.3
