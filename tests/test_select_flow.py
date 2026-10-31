@@ -149,6 +149,70 @@ class TestCompositionSync(unittest.TestCase):
         self.assertEqual(sm.prefix, "")
 
 
+class TestSelectRestored(unittest.TestCase):
+    """D-056 选字模式恢复：↕选字入口 / 候选导航 / UNKNOWN×2 防滞留。"""
+
+    def setUp(self):
+        self.sm = make_done("jian", "jian")
+
+    def _enter_select(self):
+        self.sm.idx = self.sm.items.index("↕ 选字")
+        self.assertIs(self.sm.handle(Event.LEFT), Action.NONE)
+        self.assertEqual(self.sm.mode, Mode.SELECT)
+
+    def test_entry_and_navigation(self):
+        self._enter_select()
+        self.assertEqual(self.sm.items[0], "选字 ▸ jian")
+        self.assertIs(self.sm.handle(Event.SCROLL_UP), Action.SEND_UP)
+        self.assertIs(self.sm.handle(Event.SCROLL_DOWN), Action.SEND_DOWN)
+        self.assertIs(self.sm.handle(Event.LEFT), Action.SEND_SPACE)
+
+    def test_composing_keeps_select_and_syncs_display(self):
+        """上屏'键'消费 jian 部分 → 剩余 an → 留选字并同步显示（不重derive）。"""
+        self._enter_select()
+        self.sm.handle(Event.LEFT)                       # SEND_SPACE
+        ime = FakeIME(); ime.set(COMPOSING, "an")
+        apply_confirm_result(self.sm, ime)
+        self.assertEqual(self.sm.mode, Mode.SELECT)      # 留在选字
+        self.assertEqual(self.sm.stage, Stage.DONE)      # stage 不被重derive
+        self.assertEqual(self.sm.items[0], "选字 ▸ an")
+
+    def test_ended_back_to_initial(self):
+        self._enter_select()
+        self.sm.handle(Event.LEFT)
+        ime = FakeIME(); ime.set(ENDED, None)
+        apply_confirm_result(self.sm, ime)
+        self.assertEqual(self.sm.mode, Mode.PINYIN)
+        self.assertEqual(self.sm.stage, Stage.INITIAL)
+
+    def test_unknown_x2_auto_exit(self):
+        """连续 2 次 UNKNOWN → 自动回声母层（D-056 卡死根治）。"""
+        self._enter_select()
+        self.sm.handle(Event.LEFT)
+        ime = FakeIME(); ime.set(UNKNOWN, None)
+        apply_confirm_result(self.sm, ime)
+        self.assertEqual(self.sm.mode, Mode.SELECT)      # 第 1 次：保守留
+        apply_confirm_result(self.sm, ime)
+        self.assertEqual(self.sm.mode, Mode.PINYIN)      # 第 2 次：自动回
+        self.assertEqual(self.sm.stage, Stage.INITIAL)
+
+    def test_right_backspace_until_empty_exits(self):
+        """选字态右键逐字退格：jian→ian→an→n→空 → 自动回声母层。"""
+        self._enter_select()
+        for _ in range(4):
+            self.assertEqual(self.sm.handle(Event.RIGHT), Action.BACKSPACE)
+        self.assertEqual(self.sm.prefix, "")
+        act = self.sm.handle(Event.RIGHT)                # 已空 → 回声母层
+        self.assertEqual(self.sm.mode, Mode.PINYIN)
+        self.assertEqual(self.sm.stage, Stage.INITIAL)
+
+    def test_x1_back_to_pinyin_keeps_buffer(self):
+        self._enter_select()
+        self.assertIs(self.sm.handle(Event.X1), Action.NONE)
+        self.assertEqual(self.sm.mode, Mode.PINYIN)
+        self.assertEqual(self.sm.prefix, "jian")         # 缓冲保留
+
+
 class TestMatchComposition(unittest.TestCase):
     def test_composing_tail(self):
         state, rem = match_composition("nihaozhongguo", "你好 zhongguo")

@@ -69,9 +69,10 @@ class TestFinalHeadStage(unittest.TestCase):
         self.assertEqual(snap.stage, Stage.DONE)
         self.assertEqual(snap.prefix, "zh")
         self.assertEqual(self.sm.pending_text, "h")
-        # DONE 列表 = 上屏入口 + 下一声母（整句流，D-055）
+        # DONE 列表 = 上屏入口 + 选字入口 + 下一声母（整句流，D-055/D-056）
         self.assertEqual(snap.items[0], "␣ 上屏")
-        self.assertEqual(snap.items[1:], ["z", "f"])
+        self.assertEqual(snap.items[1], "↕ 选字")
+        self.assertEqual(snap.items[2:], ["z", "f"])
 
     def test_x2_from_head_cancels_initial(self):
         act = self.sm.handle(Event.X2)             # 撤销声母
@@ -132,7 +133,8 @@ class TestDoneStage(unittest.TestCase):
 
     def test_done_continue_next_syllable(self):
         sm = self.sm
-        sm.handle(Event.SCROLL_DOWN)               # 跳过上屏，高亮 z
+        sm.handle(Event.SCROLL_DOWN)               # 高亮 ↕ 选字
+        sm.handle(Event.SCROLL_DOWN)               # 高亮 z（跳过两个入口）
         act = sm.handle(Event.LEFT)                # 第二声母 z（整句流）
         self.assertEqual(act, Action.SEND_LETTER)
         self.assertEqual(sm.pending_text, "z")
