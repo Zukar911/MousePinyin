@@ -1,19 +1,26 @@
-"""core/state_machine.py —— 双模式状态机 v4（D-024：韵母两级渐进 + 整句流）
+"""core/state_machine.py —— 双模式状态机 v5（D-024 整句流 + D-055 去选字菜单层）
 
 PINYIN 拼字模式（声母整发 + 韵母两级 + 整句流）：
   INITIAL     选声母（24 项整发，如 zh = 一次发 z,h 两键）
   FINAL_HEAD  选韵头组（a/o/e/i/u/ü，仅该声母下有效的组，≤6 项）——不发键
   FINAL_TAIL  选该组下韵母（≤10 项，频率降序）→ 1 次确认整发完整韵母
               组内仅 1 项时自动合并（选组即发，保持快捷）
-  DONE        音节完成：items = ["␣ 选字"] + 声母列表 —— 首项选字（单字流），其余继续拼
-              （微软拼音自动分节 zhong|guo，整句候选由输入法引擎给出 = 联想性恢复）
-  X1/RIGHT = 切选字（任何时候，含拼一半）
+  DONE        音节完成：items = ["␣ 上屏"] + 声母列表 —— 首项**直接发空格
+              上屏整句候选**（D-055：不再进入选字二级菜单——微软拼音的候选
+              窗本就在输入框旁，Dock 不重复承载），其余继续拼（整句连续流）
+  X1          拼字各态 = 无操作（D-055：选字模式移除后侧键闲置）
   X2 = 撤销：FINAL_TAIL→回 FINAL_HEAD（韵母未发不退格）；其余=撤销当前音节（退格回边界）
+  RIGHT       统一逐字退格（D-055：两种模式右键语义一致；原"切选字/翻页"随
+              选字模式移除）
 
-SELECT 选字模式：滚轮 = ↑↓ 候选高亮、左键 = 空格上屏（整句/词/字由输入法定）、
-  右键 = PgDn 翻页、X1 = 回拼字、X2 = 退格删拼音字母。
+【D-055 移除 SELECT 选字菜单层】原 Mode.SELECT（单键帽"拼音（组合未知）"
+菜单）整体移除：①微软拼音整句流下候选窗已由输入法承载，Dock 重复展示无价值；
+②三键模式（无侧键）下该层无任何回退通路（右键被逐字退格占用）→ 卡死；
+③组合状态 UNKNOWN 时滞留并持续泄漏导航键（D-053 根因场景）。
+上屏语义改由 DONE 层直接承担：SEND_SPACE → IME 反馈（D-031/D-053 门闸）
+判定 COMPOSING（prefix 同步输入法剩余）/ ENDED（清会话回声母层）。
 
-行为矩阵以 01 §4（v4）为规范；纯逻辑，键盘模拟由 KeyboardSink 主线程执行。
+行为矩阵以 01 §4（v5）为规范；纯逻辑，键盘模拟由 KeyboardSink 主线程执行。
 """
 
 from __future__ import annotations
@@ -41,6 +48,11 @@ class Snapshot:
 def _head_of(final: str) -> str:
     """韵母 → 韵头组键：首字符（a/o/e/i/u/v；er→e，ai→a，ia→i）。"""
     return final[:1]
+
+
+def normalize_prefix(s: str) -> str:
+    """拼音缓冲比较归一：去隔音符/空格（IME 剩余回读可能带分隔符）。"""
+    return s.replace("'", "").replace(" ", "")
 
 
 class StateMachine:
@@ -82,35 +94,35 @@ class StateMachine:
             self.items = [head for head, _ in self._grouped_finals(self.syllable)]
         elif self.stage is Stage.FINAL_TAIL:
             self.items = list(self._tails)
-        else:  # DONE：选字入口 + 下一声母（整句流）
-            self.items = ["␣ 选字"] + list(self.model.initials())
+        else:  # DONE：首项上屏 + 下一声母（整句流，D-055）
+            self.items = ["␣ 上屏"] + list(self.model.initials())
         self.idx = 0
 
-    def _switch_select(self) -> None:
-        self.mode = Mode.SELECT
-        self.items = [self._select_display()]
-        self.idx = 0
-
-    def _select_display(self) -> str:
-        """选字模式 Dock 显示：读回的组合剩余（可信）或原缓冲+未知标注（D-031）。"""
-        if self.composition is not None:
-            return self.composition
-        if self.composition_state == "UNKNOWN" and self.prefix:
-            return f"{self.prefix}（组合未知）"
-        return self.prefix or "选字"
-
-    # ---------- 选字会话（D-031：发确认键 ≠ 组合结束） ----------
+    # ---------- 选字会话语义（D-055：迁移到 DONE 层，无二级菜单） ----------
 
     def update_composition(self, remaining: str | None, state: str) -> None:
-        """IME 状态读回后同步：remaining 可信则更新显示；UNKNOWN 保留原缓冲+标注。"""
-        self.composition = remaining
-        self.composition_state = state
-        if self.mode is Mode.SELECT:
-            self.items = [self._select_display()]
-            self.idx = 0
+        """IME 状态读回后同步（原 D-031 SELECT 语义 → D-055 DONE 层语义）：
+        COMPOSING（remaining 可信）→ **prefix 同步为输入法侧剩余组合**（音节
+        段从 0 重标）并重建拼字状态（音节未完则回到对应韵母层继续；已完则
+        留 DONE 继续拼）；ENDED → 清会话回声母层；UNKNOWN → 保守不动（保持
+        当前状态 + 原缓冲，不冒充不乱清）。"""
+        if state == "COMPOSING" and remaining is not None:
+            if normalize_prefix(remaining) != normalize_prefix(self.prefix):
+                self.prefix = remaining
+                self.syllable_start = 0            # 剩余组合 = 完整待拼内容
+                self._rederive_from_prefix(Stage.DONE)
+            self.composition = remaining           # _rederive 会复位 → 后置
+            self.composition_state = state
+            return
+        if state == "ENDED":
+            self.end_select_session()
+            return
+        # UNKNOWN：保守保持（原缓冲 + 当前层，字段不覆盖已有可信值）
+        if state != "UNKNOWN" or self.composition_state == "UNKNOWN":
+            self.composition_state = state
 
     def end_select_session(self) -> None:
-        """组合确认结束：清空会话回声母层（仅由 ENDED/显式结束调用，不在发键前）。"""
+        """组合确认结束：清空会话回声母层（IME 反馈 ENDED / 显式重置调用）。"""
         self.mode = Mode.PINYIN
         self.stage = Stage.INITIAL
         self.prefix = ""
@@ -187,7 +199,8 @@ class StateMachine:
             self.idx = 0
             return
         rest = syl[len(ini):]
-        self.syllable = ini
+        self.syllable = syl                     # D-055：完整音节段（含韵尾）——
+        # _pick_tail 的 rest、_cancel_syllable 的退格数都依赖完整 syllable
         if not rest:
             if prev_stage in (Stage.FINAL_HEAD, Stage.INITIAL):
                 # 退进了声母字母内部 → 声母菜单（高亮可续声母）
@@ -200,6 +213,7 @@ class StateMachine:
             else:
                 # 删掉了整个韵母 → 韵头组菜单
                 self.stage = Stage.FINAL_HEAD
+                self.syllable = syl                 # 残段 = 声母（D-055 同步）
                 self._refresh_items()
                 self.idx = 0
             return
@@ -228,18 +242,6 @@ class StateMachine:
         if self.syllable_start > len(self.prefix):
             self.syllable_start = len(self.prefix)
         self._rederive_from_prefix(prev)
-        return Action.BACKSPACE
-
-    def _three_key_select_backspace(self) -> Action:
-        """三键模式选字态退格：同 X2 语义（删一个拼音字母）；删空回拼字声母层。"""
-        if self.prefix:
-            self.prefix = self.prefix[:-1]
-            self.pending_text = "1"
-            self._rederive_from_prefix(Stage.DONE)
-            if not self.prefix:
-                self.end_select_session()
-            return Action.BACKSPACE
-        self.end_select_session()
         return Action.BACKSPACE
 
     def _three_key_pick_initial(self, target: str) -> Action:
@@ -285,12 +287,13 @@ class StateMachine:
         self.idx = tails.index(head) if head in tails else 0
         return Action.SEND_LETTER
 
-    def _three_key_pick_tail(self, final: str) -> Action:
-        """三键 FINAL_TAIL 确认：选当前态 = 收尾进 DONE（无输出）；
+    def _pick_tail(self, final: str) -> Action:
+        """韵尾确认（D-055 起两模式统一，原 _three_key_pick_tail）：
+        选当前态 = 收尾进 DONE（无输出；IME 剩余同步重derive 后的"接受"场景）；
         选更长续接 = 补发差量字母并停留在韵尾菜单（继续精化）。"""
         syl = self.syllable
         rest = syl[len(self._longest_initial(syl)):] if syl else ""
-        if final == rest:
+        if final == rest and self.prefix.endswith(syl):
             self.stage = Stage.DONE
             self._refresh_items()
             return Action.NONE
@@ -307,7 +310,7 @@ class StateMachine:
             self.items = list(self._tails)
             self.idx = self.items.index(final) if final in self.items else 0
             return Action.SEND_LETTER
-        # 兜底（不应发生）：整发该韵母
+        # 兜底（全新音节的整发）：整发该韵母
         return self._commit_final(final)
 
     def _start_initial(self, ini: str) -> Action:
@@ -323,8 +326,7 @@ class StateMachine:
     # ---------- 事件入口 ----------
 
     def handle(self, ev: Event) -> Action:
-        if self.mode is Mode.SELECT:
-            return self._select(ev)
+        # D-055：SELECT 选字菜单层移除，mode 恒 PINYIN（枚举保留仅为兼容旧引用）
         return self._pinyin(ev)
 
     # ----- 拼字模式（INITIAL/FINAL_HEAD/FINAL_TAIL/DONE） -----
@@ -337,13 +339,12 @@ class StateMachine:
             self.idx = (self.idx + 1) % len(self.items)
             return Action.NONE
 
-        if ev is Event.RIGHT and self.three_key:
-            # 三键模式：右键 = 逐字退格 + 菜单自动回退（D-049）
+        if ev is Event.RIGHT:
+            # D-055：右键统一逐字退格（两种模式一致；原"非三键切选字/三键退格"
+            # 分叉随选字模式移除而统一）
             return self._three_key_backspace()
-        if ev in (Event.X1, Event.RIGHT):
-            # 任何时候可切选字（微软拼音对不完整拼音也出候选）
-            self._switch_select()
-            return Action.NONE
+        if ev is Event.X1:
+            return Action.NONE                  # D-055：选字模式移除，侧键闲置
         if ev is Event.X2:
             # 宪法 F-001：X2 = 退格撤销。统一撤销整个音节回声母层（全显 24 项）
             return self._cancel_syllable()
@@ -372,14 +373,15 @@ class StateMachine:
             return Action.NONE
 
         if self.stage is Stage.FINAL_TAIL:
-            if self.three_key:
-                return self._three_key_pick_tail(picked)
-            return self._commit_final(picked)
+            # D-055 统一两种模式的韵尾确认（含"接受当前态"语义——IME 剩余
+            # 同步重derive 后当前态已在组合中，此时确认 = 收尾不发键）
+            return self._pick_tail(picked)
 
-        # DONE：首项=切选字；其余=下一声母（整句流）
+        # DONE：首项 = **直接发空格上屏整句候选**（D-055，不再进选字菜单）；
+        # 其余 = 下一声母（整句流）
         if picked.startswith("␣"):
-            self._switch_select()
-            return Action.NONE
+            self.pending_text = ""
+            return Action.SEND_SPACE
         return self._start_initial(picked)
 
     def _commit_final(self, final: str) -> Action:
@@ -391,37 +393,6 @@ class StateMachine:
         self._refresh_items()
         self.idx = 0
         return Action.SEND_LETTER
-
-    # ----- 选字模式 -----
-
-    def _select(self, ev: Event) -> Action:
-        if ev is Event.SCROLL_UP:
-            return Action.SEND_UP
-        if ev is Event.SCROLL_DOWN:
-            return Action.SEND_DOWN
-        if ev is Event.LEFT:
-            # D-031：发送确认键 ≠ 组合结束。不清空会话——组合状态由
-            # 输出层发键后的 IME 反馈（ime_feedback）判定，ENDED 时经
-            # end_select_session() 清空；部分确认/未知都保持 SELECT 继续选字。
-            self.pending_text = ""
-            return Action.SEND_SPACE
-        if ev is Event.RIGHT:
-            if self.three_key:
-                return self._three_key_select_backspace()
-            return Action.SEND_PAGEDOWN
-        if ev is Event.X1:
-            self.mode = Mode.PINYIN                     # 回拼字：拼音缓冲保留
-            self._refresh_items()
-            self.idx = 0
-            return Action.NONE
-        if ev is Event.X2:
-            if self.prefix:
-                self.prefix = self.prefix[:-1]          # 输入法侧删一个字母
-                self.pending_text = ""                  # 单次退格（payload 空 = 1 次）
-                return Action.BACKSPACE
-            # D-053：缓冲已空（组合多已结束/未知）——不再盲发退格，防止
-            # 删除目标输入框中用户已上屏的字符（同类泄漏：导航键落错目标）
-            return Action.NONE
         return Action.NONE
 
     # ---------- 渲染快照 ----------
@@ -429,14 +400,11 @@ class StateMachine:
     def snapshot(self) -> Snapshot:
         stage_name = {Stage.INITIAL: "声母", Stage.FINAL_HEAD: "韵头",
                       Stage.FINAL_TAIL: "韵母", Stage.DONE: "完成"}[self.stage]
-        if self.mode is Mode.PINYIN:
-            ctx = f"拼字[{stage_name}] ｜ {self.prefix or '（空）'}"
-            if self.stage is Stage.DONE:
-                ctx += " ｜ ␣选字 或继续下一声母（整句）"
-        else:
-            comp = (f"剩余 {self.composition}" if self.composition is not None
-                    else f"{self.prefix}（{self.composition_state}）")
-            ctx = f"选字 ｜ 组合[{self.composition_state}]：{comp}"
+        ctx = f"拼字[{stage_name}] ｜ {self.prefix or '（空）'}"
+        if self.stage is Stage.DONE:
+            ctx += " ｜ ␣上屏 或继续下一声母（整句）"
+        if self.composition_state != "UNKNOWN" and self.composition is not None:
+            ctx += f" ｜ 同步[{self.composition}]"
         return Snapshot(
             mode=self.mode,
             stage=self.stage,

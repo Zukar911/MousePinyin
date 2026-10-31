@@ -111,15 +111,14 @@ class TestDebugCollector(unittest.TestCase):
         self.assertEqual(self.panel.log.toPlainText(), "")
 
     def test_status_uses_real_snapshot_with_composition(self):
-        """D-031 集成防回归：真实 StateMachine 的 SELECT 快照必须带
+        """D-031/D-055 集成防回归：DONE 层 IME 同步后的快照必须带
         composition 字段——demo 集成层曾因 Snapshot 缺字段而渲染崩溃。"""
         sm = self.sm
         sm.handle(Event.LEFT)                 # z -> FINAL_HEAD
         sm.handle(Event.LEFT)                 # h 组合并直发 -> DONE
-        sm.handle(Event.LEFT)                 # ␣选字 -> SELECT
-        sm.update_composition("a", "COMPOSING")
+        sm.update_composition("h", "COMPOSING")   # D-055：上屏后剩余同步
         snap = sm.snapshot()                  # 必须含 composition/composition_state
-        self.assertEqual(snap.composition, "a")
+        self.assertEqual(snap.composition, "h")
         self.assertEqual(snap.composition_state, "COMPOSING")
         self.panel.update_status(snap, "已发键记录：zh")   # 不得抛 AttributeError
 

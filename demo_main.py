@@ -1,11 +1,12 @@
-"""demo_main.py —— P4 前夜版：Dock 字母树拼字 + 键盘模拟（微软拼音承接选字）
+"""demo_main.py —— Dock 字母树拼字 + 键盘模拟（微软拼音承接，D-055 无选字菜单）
 
 使用前准备：
 1. 确保微软拼音处于中文模式（或任意拼音输入法）
 2. 先点开一个输入框（记事本/微信/浏览器地址栏）——本程序不抢焦点，
    模拟按键会发往当前焦点窗口
-3. 鼠标操作：滚轮选字母 → 左键发键 → 拼到音节自动进选字 → 滚轮选字 左键上屏
-   X1=拼字/选字切换  X2=退格  ✕ 或 Ctrl+Alt+Q 退出
+3. 鼠标操作：滚轮选字母 → 左键发键 → 拼完音节后「␣ 上屏」直接发空格
+   （或继续滚选下一声母整句流）；X2=退格撤销  右键=逐字退格
+   ✕ 或 Ctrl+Alt+Q 退出；--global 启用全局钩子模式（Ctrl+Alt+M 开关）
 4. 单实例：重复启动会提示并退出（D-027 命名互斥量）
 """
 
@@ -113,19 +114,14 @@ def main() -> int:
     sm.three_key = bool(cfg.three_key)           # D-049 三键模式
     sink = KeyboardSink()
     key_log: list[str] = []
-    # D-053 导航门闸：SEND_SPACE 上屏确认后，组合状态未再确认（IME 反馈
-    # 未返回）前，SELECT 导航键（↑↓/Space/PgDn）不盲发——组合可能已结束，
-    # 盲发的 ↑ 会落入聊天类输入框并被解释为"调出上一条已发送消息全文"
-    # （用户实测报告：WorkBuddy 输入框偶发调出以前发送的消息）。
-    ime_gate = {"on": False}
+    from io_sink.ime_feedback import query_composition   # D-055 上屏同步判定
 
     def render() -> None:
         win.render(sm.snapshot(), "".join(key_log)[-20:])
         if panel is not None:
-            ime = (f"已发键记录：{''.join(key_log)[-20:] or '（无）'}"
-                   if sm.mode is Mode.SELECT else
-                   f"已发键记录（最近）：{''.join(key_log)[-20:] or '（无）'}")
-            panel.update_status(sm.snapshot(), ime)
+            panel.update_status(
+                sm.snapshot(),
+                f"已发键记录（最近）：{''.join(key_log)[-20:] or '（无）'}")
 
     def dock_info() -> str:
         g = win.frameGeometry()
@@ -147,15 +143,13 @@ def main() -> int:
             n = sm.pending_text if sm.pending_text.isdigit() else "1"
             return f"撤销当前音节（计划退格 ×{n}）"
         if act is Action.SEND_SPACE:
-            return "选字确认（空格上屏，由输入法定）"
+            return "␣上屏（空格上屏整句候选，输入法定）"
         if act is Action.SEND_PAGEDOWN:
             return "候选翻页（PageDown）"
         if act is Action.FIXUP:
             n, _, letters = (sm.pending_text or "0|").partition("|")
             return f"三键校正：退格×{n} 后发送 '{letters}'"
         if act.name == "NONE":
-            if bm != am:
-                return "切换模式（拼字 ↔ 选字）"
             return "状态更新（不发键）"
         return f"动作 {act.name}"
 
@@ -181,24 +175,6 @@ def main() -> int:
                  (f"{bm}→{am}" if bm != am else "状态不变"))
         interp = interpret(act, bs, as_, bm, am) if collector else None
         plan = plan_desc(act, sm) if collector else None
-        # D-053 导航门闸：确认后第一次导航先校验组合状态再决定发不发
-        if (ime_gate["on"] and sm.mode is Mode.SELECT
-                and act.name in ("SEND_UP", "SEND_DOWN", "SEND_PAGEDOWN",
-                                 "SEND_SPACE")):
-            from io_sink.ime_feedback import query_composition
-            istate, remaining = query_composition(sm.prefix, retries=1,
-                                                  delay=0.05)
-            sm.update_composition(remaining, istate)
-            ime_gate["on"] = False
-            if collector:
-                collector.emit(f"{op or '导航门闸'}（D-053）",
-                               f"组合状态={istate} → "
-                               f"{'拦截不发（组合已结束）' if istate == 'ENDED' else '放行'}",
-                               state, "无输出动作" if istate == "ENDED" else "放行后正常发键")
-            if istate == "ENDED":
-                sm.end_select_session()
-                render()
-                return
         if act.name in ("SEND_LETTER", "BACKSPACE"):
             if collector:
                 collector.expect_execution(plan)
@@ -211,34 +187,42 @@ def main() -> int:
             sink.execute(act, "")
             if collector:
                 collector.emit(op, interp, state, plan)
-            # D-031：SELECT 确认键已发 → 组合状态未定，延迟读 IME 反馈；
-            # D-053：反馈返回前导航键被门闸拦截
-            if act is Action.SEND_SPACE and sm.mode is Mode.SELECT:
-                ime_gate["on"] = True
-                QTimer.singleShot(180, lambda: ime_feedback_check("选字确认后"))
+            # D-055：␣上屏发出后**同步判定**组合状态（GetFocusedElement 快路径
+            # 毫秒级；候选窗焦点期由重试吸收）——COMPOSING → prefix 同步输入法
+            # 剩余继续拼；ENDED → 清会话回声母层。字母裸上屏（截图 bug）由此根治：
+            # 组合已结束时状态立即清空，后续字母必然开启新音节。
+            if act is Action.SEND_SPACE:
+                istate, remaining = query_composition(sm.prefix, retries=2,
+                                                      delay=0.06)
+                sm.update_composition(remaining, istate)
+                if collector:
+                    collector.emit(f"{op or '␣上屏'}（同步反馈）",
+                                   {"COMPOSING": f"组合剩余 {remaining!r} → 同步后继续拼",
+                                    "ENDED": "组合已结束 → 清会话回声母层",
+                                    }.get(istate, "组合状态未知 → 保守保持"),
+                                   state, "无输出动作（仅读取）")
+                # 180ms 异步兜底（候选窗焦点期更长时的二次校准，幂等）
+                QTimer.singleShot(180, lambda: ime_feedback_check("上屏确认后"))
         else:
             if collector:
                 collector.emit(op, interp, state, "无输出动作")
             render()
 
     def ime_feedback_check(reason: str) -> None:
-        """发键 180ms 后读回目标应用文本，判定组合状态（D-031）。
-        COMPOSING → 保持选字并同步剩余；ENDED → 清空会话回声母层；
-        UNKNOWN → 保持选字 + 明确标注未知（不清空、不补发键）。
-        反馈返回后解除 D-053 导航门闸（无论结果）。"""
-        from io_sink.ime_feedback import COMPOSING, ENDED, query_composition
+        """上屏后异步兜底：再次读回组合状态并同步（D-055，幂等）。
+        COMPOSING → prefix 同步剩余；ENDED → 清会话回声母层；
+        UNKNOWN → 保守保持。"""
         state, remaining = query_composition(sm.prefix)
         sm.update_composition(remaining, state)
-        ime_gate["on"] = False
         if collector:
             read = (f"读取通道成功，剩余组合={remaining!r}" if remaining is not None
                     else "读取失败/无法比对 → 标记未知")
             collector.emit(f"{reason}（IME 反馈）",
-                           {"COMPOSING": "组合仍在 → 保持选字模式",
-                            ENDED: "组合已结束 → 清空会话回声母层",
-                            }.get(state, "组合状态未知 → 保持选字，不清空不补发"),
-                           f"选字→{'选字' if state != ENDED else '声母层'}",
-                           "无输出动作（仅读取）" if state != ENDED else "无输出动作")
+                           {"COMPOSING": "组合仍在 → prefix 已同步，继续拼",
+                            "ENDED": "组合已结束 → 清空会话回声母层",
+                            }.get(state, "组合状态未知 → 保守保持"),
+                           f"{state}",
+                           "无输出动作（仅读取）")
         render()
 
     def on_sent(text: str, ok: bool) -> None:

@@ -1,9 +1,11 @@
-"""多音节分段选字回归测试 —— D-031（发确认键 ≠ 组合结束）
+"""整句流上屏回归 —— D-055（选字菜单层移除：「␣ 上屏」直接发空格 + IME 反馈同步）
 
-场景：nihaozhongguo → 选"你好" → 选"中" → 选"国" → 回声母层。
-覆盖：确认后保持 SELECT / IME 反馈分支（COMPOSING/ENDED/UNKNOWN）/ 判定纯函数。
+场景：nihao（DONE 层）→ ␣上屏 → COMPOSING（剩余组合）prefix 同步重derive
+继续拼 / ENDED 清空回声母层 / UNKNOWN 保守保持。
+覆盖 update_composition 新语义、分段流、_pick_tail 接受当前态。
 """
 
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -32,86 +34,119 @@ class FakeIME:
 
 
 def apply_confirm_result(sm, ime: FakeIME):
-    """复刻 demo_main.ime_feedback_check 的分支（可注入查询）。"""
+    """复刻 demo_main 上屏反馈分支（可注入查询）。"""
     state, remaining = ime(sm.prefix)
     sm.update_composition(remaining, state)
-    if state == ENDED:
-        sm.end_select_session()
 
 
-class TestSelectKeepsSession(unittest.TestCase):
-    def setUp(self):
-        self.sm = StateMachine(CandidateModel())
-        # 走到 SELECT（真数据：d→a组→a 等；直接构造简单路径）
-        self.sm.mode = Mode.SELECT
-        self.sm.prefix = "nihaozhongguo"
-        self.sm.stage = Stage.DONE
-        self.sm.items = [self.sm.prefix or "选字"]
+def make_done(prefix: str = "nihao", syllable: str = "hao") -> StateMachine:
+    sm = StateMachine(CandidateModel())
+    sm.mode = Mode.PINYIN
+    sm.prefix = prefix
+    sm.syllable = syllable
+    sm.syllable_start = len(prefix) - len(syllable)
+    sm.stage = Stage.DONE
+    sm._refresh_items()
+    return sm
 
-    def test_left_does_not_reset(self):
-        """确认键发出后会话保留（旧实现在此清空 → 分段选字断裂）。"""
-        act = self.sm.handle(Event.LEFT)
+
+class TestDoneScreen(unittest.TestCase):
+    """DONE 层「␣ 上屏」直接发空格（无二级菜单）。"""
+
+    def test_first_item_is_screen(self):
+        sm = make_done()
+        self.assertEqual(sm.items[0], "␣ 上屏")
+
+    def test_left_on_screen_sends_space(self):
+        sm = make_done()
+        sm.idx = 0
+        act = sm.handle(Event.LEFT)
         self.assertEqual(act, Action.SEND_SPACE)
-        self.assertEqual(self.sm.mode, Mode.SELECT)      # 仍选字
-        self.assertEqual(self.sm.prefix, "nihaozhongguo")  # 缓冲未清
-        self.assertNotEqual(self.sm.stage, Stage.INITIAL or self.sm.stage)
+        self.assertEqual(sm.stage, Stage.DONE)          # 不进二级菜单
+        self.assertEqual(sm.mode, Mode.PINYIN)
 
-    def test_partial_confirm_keeps_select(self):
-        """选'你好'（只消费部分音节）→ 保持 SELECT 继续选字。"""
-        self.sm.handle(Event.LEFT)                       # 确认键
-        ime = FakeIME(); ime.set(COMPOSING, "zhongguo")
+    def test_left_on_initial_continues_flow(self):
+        sm = make_done()
+        sm.idx = sm.items.index("d")                    # 下一声母（整句流）
+        act = sm.handle(Event.LEFT)
+        self.assertEqual(act, Action.SEND_LETTER)
+        self.assertEqual(sm.pending_text, "d")
+
+    def test_right_backspace_in_done(self):
+        sm = make_done()
+        act = sm.handle(Event.RIGHT)                    # 统一逐字退格
+        self.assertEqual(act, Action.BACKSPACE)
+
+    def test_x1_idle(self):
+        sm = make_done()
+        self.assertIs(sm.handle(Event.X1), Action.NONE)
+
+
+class TestCompositionSync(unittest.TestCase):
+    """IME 反馈 → update_composition 三分支。"""
+
+    def setUp(self):
+        self.sm = make_done("nihao", "hao")
+
+    def test_composing_syncs_prefix_and_rederives(self):
+        """上屏'你'消费 ni → 剩余 hao → prefix 同步 + 重derive 回韵尾层。"""
+        self.sm.handle(Event.LEFT)                      # SEND_SPACE
+        ime = FakeIME(); ime.set(COMPOSING, "hao")
         apply_confirm_result(self.sm, ime)
-        self.assertEqual(self.sm.mode, Mode.SELECT)
-        self.assertIn("zhongguo", self.sm.items[0])      # Dock 显示读回的剩余
+        self.assertEqual(self.sm.prefix, "hao")
+        self.assertEqual(self.sm.mode, Mode.PINYIN)
+        self.assertEqual(self.sm.stage, Stage.FINAL_TAIL)
+        self.assertIn("ao", self.sm.items)              # rest=ao 的韵尾菜单
 
-    def test_whole_sentence_confirm_ends(self):
-        """整句候选一次确认 → ENDED → 回声母层。"""
+    def test_composing_same_prefix_keeps_state(self):
+        """输入法未消费（remaining == prefix）→ 状态不动。"""
+        self.sm.handle(Event.LEFT)
+        ime = FakeIME(); ime.set(COMPOSING, "nihao")
+        apply_confirm_result(self.sm, ime)
+        self.assertEqual(self.sm.prefix, "nihao")
+        self.assertEqual(self.sm.stage, Stage.DONE)
+
+    def test_ended_resets_to_initial(self):
+        """整句一次上屏 → ENDED → 清会话回声母层。"""
         self.sm.handle(Event.LEFT)
         ime = FakeIME(); ime.set(ENDED, None)
         apply_confirm_result(self.sm, ime)
         self.assertEqual(self.sm.mode, Mode.PINYIN)
         self.assertEqual(self.sm.stage, Stage.INITIAL)
         self.assertEqual(self.sm.prefix, "")
-        self.assertEqual(self.sm.items[0], "d")          # 声母层（频率首项）
+        self.assertEqual(self.sm.items, list(self.sm.model.initials()))
 
-    def test_unknown_keeps_session_no_fake_reset(self):
-        """读取失败 → 标记未知、保留会话、不清空（不冒充、不补发）。"""
+    def test_unknown_conservative(self):
+        """读取失败 → 保守保持（prefix 不动、不冒充、不乱清）。"""
         self.sm.handle(Event.LEFT)
         ime = FakeIME(); ime.set(UNKNOWN, None)
         apply_confirm_result(self.sm, ime)
-        self.assertEqual(self.sm.mode, Mode.SELECT)
-        self.assertIn("（组合未知）", self.sm.items[0])   # 明确标注未知
-        self.assertEqual(self.sm.prefix, "nihaozhongguo")
+        self.assertEqual(self.sm.prefix, "nihao")
+        self.assertEqual(self.sm.stage, Stage.DONE)
 
-    def test_segmented_flow_full(self):
-        """nihaozhongguo → 选'你好' → 选'中' → 选'国'（分段确认全流程）。"""
+    def test_segmented_flow(self):
+        """nihao → 上屏'你'（剩 hao）→ 重derive 接受当前态 ao → DONE
+        → 再上屏 → ENDED 清空。全链无二级菜单、无卡点。"""
         sm = self.sm
-        sm.handle(Event.LEFT)
-        ime = FakeIME(); ime.set(COMPOSING, "zhongguo")
+        sm.idx = 0
+        sm.handle(Event.LEFT)                           # SEND_SPACE
+        ime = FakeIME(); ime.set(COMPOSING, "hao")
         apply_confirm_result(sm, ime)
-        self.assertEqual(sm.mode, Mode.SELECT)
-        # 继续选字：再确认一次（选"中"）
-        sm.handle(Event.LEFT)
-        ime.set(COMPOSING, "guo")
-        apply_confirm_result(sm, ime)
-        self.assertEqual(sm.mode, Mode.SELECT)
-        self.assertIn("guo", sm.items[0])
-        # 最后一次确认 → 组合结束
-        sm.handle(Event.LEFT)
+        self.assertEqual(sm.prefix, "hao")
+        self.assertEqual(sm.stage, Stage.FINAL_TAIL)
+        # 重derive 后韵尾菜单 = ["ao"]，左键 = 接受当前态 → DONE 不发键
+        self.assertEqual(sm.items, ["ao"])
+        sm.idx = 0
+        self.assertIs(sm.handle(Event.LEFT), Action.NONE)
+        self.assertEqual(sm.stage, Stage.DONE)
+        self.assertEqual(sm.prefix, "hao")              # 无重复追加
+        # 再上屏 → 全部消费完 → ENDED
+        sm.idx = 0
+        self.assertEqual(sm.handle(Event.LEFT), Action.SEND_SPACE)
         ime.set(ENDED, None)
         apply_confirm_result(sm, ime)
-        self.assertEqual(sm.mode, Mode.PINYIN)
+        self.assertEqual(sm.stage, Stage.INITIAL)
         self.assertEqual(sm.prefix, "")
-        self.assertEqual(sm.items, list(sm.model.initials())[: len(sm.items)])
-
-    def test_end_select_session_direct(self):
-        """显式结束接口：清空全部会话状态。"""
-        sm = self.sm
-        sm.handle(Event.LEFT)
-        sm.end_select_session()
-        self.assertEqual(sm.mode, Mode.PINYIN)
-        self.assertEqual((sm.prefix, sm.syllable, sm.syllable_start), ("", "", 0))
-        self.assertEqual(sm.composition, None)
 
 
 class TestMatchComposition(unittest.TestCase):
@@ -137,4 +172,4 @@ class TestMatchComposition(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    unittest.main()

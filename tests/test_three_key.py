@@ -123,9 +123,9 @@ class TestThreeKeyZhengFlow(unittest.TestCase):
 
 
 class TestThreeKeySelectMode(unittest.TestCase):
-    def test_select_right_backspace_and_exit(self):
-        """三键选字态：右键=退格一个拼音字母；删空自动回拼字声母层。
-        进入路径：n → i（韵尾菜单）→ 左键接受当前态 i → DONE → ␣选字。"""
+    def test_select_right_backspace_unified(self):
+        """D-055：SELECT 移除，三键模式右键在 DONE 层 = 统一逐字退格。
+        进入路径：n → i（韵尾菜单）→ 左键接受当前态 i → DONE。"""
         sm = mk()
         sm.idx = sm.items.index("n")
         sm.handle(Event.LEFT)                      # 发 n → FINAL_HEAD
@@ -135,26 +135,22 @@ class TestThreeKeySelectMode(unittest.TestCase):
         sm.idx = sm.items.index("i")               # 当前态 = 接受
         self.assertEqual(sm.handle(Event.LEFT), Action.NONE)   # 收尾 → DONE
         self.assertEqual(sm.stage.name, "DONE")
-        sm.idx = 0                                 # ␣ 选字
-        sm.handle(Event.LEFT)                      # → SELECT
-        self.assertEqual(sm.mode.name, "SELECT")
-        self.assertEqual(sm.handle(Event.RIGHT), Action.BACKSPACE)
-        self.assertEqual(sm.prefix, "n")
-        self.assertEqual(sm.mode.name, "SELECT")
-        self.assertEqual(sm.handle(Event.RIGHT), Action.BACKSPACE)
-        self.assertEqual(sm.prefix, "")
-        self.assertEqual(sm.mode.name, "PINYIN")
-        self.assertEqual(sm.stage.name, "INITIAL")
+        sm.idx = 0
+        act = sm.handle(Event.RIGHT)               # 统一逐字退格
+        self.assertEqual(act, Action.BACKSPACE)
+        self.assertEqual(sm.prefix, "n")           # 退掉韵尾 i
+        self.assertEqual(sm.mode.name, "PINYIN")   # mode 恒拼字（D-055）
 
 
 class TestDefaultModeUnchanged(unittest.TestCase):
-    def test_default_right_still_switches_select(self):
-        """三键关闭（默认）：右键=切选字，一切照旧。"""
+    def test_default_right_backspace_unified(self):
+        """D-055：三键关闭（默认）右键也 = 统一逐字退格（原切选字随
+        SELECT 移除而统一，两模式右键语义一致）。"""
         sm = mk(three_key=False)
         sm.idx = sm.items.index("zh")
         sm.handle(Event.LEFT)
-        self.assertEqual(sm.handle(Event.RIGHT), Action.NONE)
-        self.assertEqual(sm.mode.name, "SELECT")
+        self.assertEqual(sm.handle(Event.RIGHT), Action.BACKSPACE)
+        self.assertEqual(sm.snapshot().stage.name, "INITIAL")
 
 
 if __name__ == "__main__":
