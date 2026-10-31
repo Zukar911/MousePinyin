@@ -5,15 +5,16 @@
 
 ## 获取与运行
 
-**方式 A · 便携包（推荐普通用户）**：下载 `MousePinyin.zip`（见 Releases），
-解压到非系统目录，双击 `MousePinyin.exe` 即用（全局钩子模式用
-`启动-全局钩子.bat`）。无 Python 依赖、无安装过程。
+**方式 A · 便携包（推荐普通用户）**：到 [Releases](https://github.com/Zukar911/MousePinyin/releases)
+下载 `MousePinyin.zip`（48.4MB），解压到非系统目录，双击 `MousePinyin.exe` 即用
+（全局钩子模式用 `启动-全局钩子.bat`）。无 Python 依赖、无安装过程、不联网。
+国内加速：把 asset 链接前加 `https://ghproxy.net/` 前缀。
 
 **方式 B · 从源码运行**：需要 Python 3.13+。
 
 ```bat
-git clone <本仓库地址>
-cd <仓库目录>
+git clone https://github.com/Zukar911/MousePinyin.git
+cd MousePinyin
 install.bat
 ```
 
